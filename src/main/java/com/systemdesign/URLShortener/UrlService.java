@@ -28,7 +28,7 @@ public class UrlService {
          return urlResponseDTO;
     }
     public String getOriginalUrlFromShortenUrl(String shortenCode){
-         UrlMappingEntity url= urlRepository.findByShortCode(shortenCode).orElse(null);
+         UrlMappingEntity url= urlRepository.findByShortCode(shortenCode).orElseThrow(()-> new RuntimeException("Short URL not found"));
 
 //         UrlResponseDTO response =  new UrlResponseDTO();
 ////         response.setShortenUrl(url.getShortCode());
