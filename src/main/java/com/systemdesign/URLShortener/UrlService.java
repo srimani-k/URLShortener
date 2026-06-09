@@ -24,7 +24,7 @@ public class UrlService {
          urlRepository.save(urlbody);
 
          UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
-         urlResponseDTO.setShortenUrl("https://localhost:8080/"+urlbody.getShortCode());
+         urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
          return urlResponseDTO;
     }
     public String getOriginalUrlFromShortenUrl(String shortenCode){
