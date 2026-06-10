@@ -17,6 +17,9 @@ public class UrlService {
     //3. Save in DB
     //4. Return short URL
     public UrlResponseDTO postShortenUrl(String inputurl){
+        if(inputurl==null || inputurl.isBlank()){
+            throw new InvalidUrlException("URL cannot be empty");
+        }
         String generateShortCode = UUID.randomUUID().toString().substring(0,6);
         UrlMappingEntity urlbody = new UrlMappingEntity();
         urlbody.setShortCode(generateShortCode);
@@ -28,7 +31,7 @@ public class UrlService {
          return urlResponseDTO;
     }
     public String getOriginalUrlFromShortenUrl(String shortenCode){
-         UrlMappingEntity url= urlRepository.findByShortCode(shortenCode).orElseThrow(()-> new RuntimeException("Short URL not found"));
+         UrlMappingEntity url= urlRepository.findByShortCode(shortenCode).orElseThrow(()-> new ShortUrlNotFoundException("Short URL not found"));
 
 //         UrlResponseDTO response =  new UrlResponseDTO();
 ////         response.setShortenUrl(url.getShortCode());

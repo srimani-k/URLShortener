@@ -17,9 +17,6 @@ public class UrlController {
     //4. Return short URL - responseDTO
     @PostMapping("/shorten")
     public ResponseEntity<UrlResponseDTO> postShortenUrl(@RequestBody UrlRequestDTO urlRequestDTO){
-        if(urlRequestDTO.getUrl() == null || urlRequestDTO.getUrl().isBlank()){
-            return ResponseEntity.status(400).body(null);
-        }
         UrlResponseDTO response = urlService.postShortenUrl(urlRequestDTO.getUrl());
         return ResponseEntity.status(201).body(response);
     }
