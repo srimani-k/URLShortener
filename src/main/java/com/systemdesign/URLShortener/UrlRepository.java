@@ -11,4 +11,5 @@ public interface UrlRepository extends JpaRepository<UrlMappingEntity,Long> {
 //      UrlMappingEntity findByShortCode(String shortCode);
     //handle the "not found" case.
     Optional<UrlMappingEntity> findByShortCode(String shortCode);
+    Optional<UrlMappingEntity> findByOriginalUrl(String originalUrl);
 }

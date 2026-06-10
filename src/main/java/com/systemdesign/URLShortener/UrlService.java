@@ -2,6 +2,7 @@ package com.systemdesign.URLShortener;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,12 +21,20 @@ public class UrlService {
         if(inputurl==null || inputurl.isBlank()){
             throw new InvalidUrlException("URL cannot be empty");
         }
+
+        //before generating shortcode, prevent duplicates !!!!
+        Optional<UrlMappingEntity> existingUrl = urlRepository.findByOriginalUrl(inputurl);
+        if(existingUrl.isPresent()){
+            UrlResponseDTO response = new UrlResponseDTO();
+            response.setShortenUrl("http://localhost:8080/" + existingUrl.get().getShortCode());
+            return response;
+        }
+
         String generateShortCode = UUID.randomUUID().toString().substring(0,6);
         UrlMappingEntity urlbody = new UrlMappingEntity();
         urlbody.setShortCode(generateShortCode);
         urlbody.setOriginalUrl(inputurl);
          urlRepository.save(urlbody);
-
          UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
          urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
          return urlResponseDTO;
