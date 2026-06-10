@@ -42,6 +42,9 @@ public class UrlService {
     public String getOriginalUrlFromShortenUrl(String shortenCode){
          UrlMappingEntity url= urlRepository.findByShortCode(shortenCode).orElseThrow(()-> new ShortUrlNotFoundException("Short URL not found"));
 
+         //set clickcount
+         url.setClickCount(url.getClickCount()+1);
+         urlRepository.save(url);
 //         UrlResponseDTO response =  new UrlResponseDTO();
 ////         response.setShortenUrl(url.getShortCode());
 //         response.setOriginalUrl(url.getOriginalUrl());

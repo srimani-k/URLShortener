@@ -13,6 +13,7 @@ public class UrlMappingEntity {
     private Long id;
     private String originalUrl;
     private String shortCode;
+    private Long clickCount=0L;
 
     public UrlMappingEntity() {
     }
@@ -39,6 +40,14 @@ public class UrlMappingEntity {
 
     public void setShortCode(String shortCode) {
         this.shortCode = shortCode;
+    }
+
+    public Long getClickCount() {
+        return clickCount;
+    }
+
+    public void setClickCount(Long clickCount) {
+        this.clickCount = clickCount;
     }
 }
 
