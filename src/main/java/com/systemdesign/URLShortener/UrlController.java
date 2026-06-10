@@ -27,9 +27,15 @@ public class UrlController {
     //3. Get originalUrl from entity
     //4. Return originalUrl
     //3XX codes mean redirection. The content moved somewhere else, and the server’s sending you to the new location. These can be temporary or permanent.
-    @GetMapping("/{shortenCode}")
-    public ResponseEntity<Void> getOriginalUrlFromShortenUrl(@PathVariable String shortenCode){ //void bcoz we are not returning anything(string/JSON)
-         String originalUrl =  urlService.getOriginalUrlFromShortenUrl(shortenCode);
+    @GetMapping("/{shorteCode}")
+    public ResponseEntity<Void> getOriginalUrlFromShortenUrl(@PathVariable String shorteCode){ //void bcoz we are not returning anything(string/JSON)
+         String originalUrl =  urlService.getOriginalUrlFromShortenUrl(shorteCode);
          return ResponseEntity.status(302).header("Location",originalUrl).build(); //302-Found.build() instead of body() bcoz we are not returning anything
+    }
+
+    @GetMapping("/stats/{shortCode}")
+    public ResponseEntity<UrlStatsResponseDTO> getUrlStats(@PathVariable String shortCode){
+        UrlStatsResponseDTO responseDTO = urlService.getUrlStats(shortCode);
+        return ResponseEntity.ok(responseDTO);
     }
 }

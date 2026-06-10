@@ -39,8 +39,8 @@ public class UrlService {
          urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
          return urlResponseDTO;
     }
-    public String getOriginalUrlFromShortenUrl(String shortenCode){
-         UrlMappingEntity url= urlRepository.findByShortCode(shortenCode).orElseThrow(()-> new ShortUrlNotFoundException("Short URL not found"));
+    public String getOriginalUrlFromShortenUrl(String shortCode){
+         UrlMappingEntity url= urlRepository.findByShortCode(shortCode).orElseThrow(()-> new ShortUrlNotFoundException("Short URL not found"));
 
          //set clickcount
          url.setClickCount(url.getClickCount()+1);
@@ -51,10 +51,15 @@ public class UrlService {
          return url.getOriginalUrl();
 
     }
-//    public UrlResponseDTO getShortenUrl(Long id){
-//        UrlResponseDTO  url = new UrlResponseDTO();
-//        url = urlRepository.findById(id).orElse(null);
-//
-//        return url;
-//    }
+
+    public UrlStatsResponseDTO getUrlStats(String shortCode){
+        UrlMappingEntity urlbody = urlRepository.findByShortCode(shortCode).orElseThrow(()->new ShortUrlNotFoundException("Short code not found"));
+
+        UrlStatsResponseDTO response = new UrlStatsResponseDTO();
+        response.setOriginalUrl(urlbody.getOriginalUrl());
+        response.setShortUrl("http://localhost:8080/"+urlbody.getShortCode());
+        response.setClickCount(urlbody.getClickCount());
+
+        return response;
+    }
 }
