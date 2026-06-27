@@ -33,12 +33,14 @@ public class UrlService {
         while(urlRepository.findByShortCode(generateShortCode).isPresent()){
              generateShortCode = generateShortCodeWithUUID();
         }
-        UrlMappingEntity urlbody = new UrlMappingEntity();
-        urlbody.setShortCode(generateShortCode);
-        urlbody.setOriginalUrl(inputurl);
         LocalDateTime timeNow = LocalDateTime.now();
-        urlbody.setCreatedAt(timeNow);
-        urlbody.setExpiresAt(timeNow.plusDays(30));
+
+        UrlMappingEntity urlbody = UrlMappingEntity.builder().shortCode(generateShortCode).originalUrl(inputurl).createdAt(timeNow).expiresAt(timeNow.plusDays(30)).build();
+//        UrlMappingEntity urlbody = new UrlMappingEntity();
+//        urlbody.setShortCode(generateShortCode);
+//        urlbody.setOriginalUrl(inputurl);
+//        urlbody.setCreatedAt(timeNow);
+//        urlbody.setExpiresAt(timeNow.plusDays(30));
         urlRepository.save(urlbody);
         UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
         urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
