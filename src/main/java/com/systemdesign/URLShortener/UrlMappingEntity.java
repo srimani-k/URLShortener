@@ -2,6 +2,8 @@ package com.systemdesign.URLShortener;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 public class UrlMappingEntity {
 
@@ -13,6 +15,8 @@ public class UrlMappingEntity {
     @Column(unique=true)
     private String shortCode;
     private Long clickCount=0L;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
 
     public UrlMappingEntity() {
     }
@@ -47,6 +51,22 @@ public class UrlMappingEntity {
 
     public void setClickCount(Long clickCount) {
         this.clickCount = clickCount;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 }
 

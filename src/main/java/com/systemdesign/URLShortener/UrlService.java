@@ -2,6 +2,7 @@ package com.systemdesign.URLShortener;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,25 +31,33 @@ public class UrlService {
             return response;
         }
 
-        String generateShortCode = generateShortCodeWithUUID(inputurl);//88uyg
+        String generateShortCode = generateShortCodeWithUUID();//88uyg
         //before saving, check if generated shortcode is already present in db or not (shortcode duplicate check)
         while(urlRepository.findByShortCode(generateShortCode).isPresent()){
-             generateShortCode = generateShortCodeWithUUID(inputurl);
+             generateShortCode = generateShortCodeWithUUID();
         }
         UrlMappingEntity urlbody = new UrlMappingEntity();
         urlbody.setShortCode(generateShortCode);
         urlbody.setOriginalUrl(inputurl);
+        LocalDateTime timeNow = LocalDateTime.now();
+        urlbody.setCreatedAt(timeNow);
+        urlbody.setExpiresAt(timeNow.plusDays(30));
         urlRepository.save(urlbody);
         UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
         urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
         return urlResponseDTO;
     }
-    private String generateShortCodeWithUUID(String url){
+    private String generateShortCodeWithUUID(){
         return UUID.randomUUID().toString().substring(0,6);
     }
     public String getOriginalUrlFromShortenUrl(String shortCode){
          UrlMappingEntity url= urlRepository.findByShortCode(shortCode).orElseThrow(()-> new ShortUrlNotFoundException("Short URL not found"));
 
+         //check expiration
+        LocalDateTime timeNow = LocalDateTime.now();
+        if(timeNow.isAfter(url.getExpiresAt())){
+            throw new UrlExpiredException("URL has expired !!");
+        }
          //set clickcount
          url.setClickCount(url.getClickCount()+1);
          urlRepository.save(url);
