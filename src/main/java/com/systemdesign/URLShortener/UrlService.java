@@ -19,9 +19,6 @@ public class UrlService {
     //3. Save in DB
     //4. Return short URL
     public UrlResponseDTO postShortenUrl(String inputurl){
-        if(inputurl==null || inputurl.isBlank()){
-            throw new InvalidUrlException("URL cannot be empty");
-        }
 
         //before generating shortcode, prevent duplicate original URLS*** !!!!
         Optional<UrlMappingEntity> existingUrl = urlRepository.findByOriginalUrl(inputurl);

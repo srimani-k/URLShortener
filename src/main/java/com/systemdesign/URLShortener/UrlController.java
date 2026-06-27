@@ -1,5 +1,6 @@
 package com.systemdesign.URLShortener;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +17,7 @@ public class UrlController {
     //3. Save in DB
     //4. Return short URL - responseDTO
     @PostMapping("/shorten")
-    public ResponseEntity<UrlResponseDTO> postShortenUrl(@RequestBody UrlRequestDTO urlRequestDTO){
+    public ResponseEntity<UrlResponseDTO> postShortenUrl(@Valid @RequestBody UrlRequestDTO urlRequestDTO){
         UrlResponseDTO response = urlService.postShortenUrl(urlRequestDTO.getUrl());
         return ResponseEntity.status(201).body(response);
     }
@@ -27,9 +28,9 @@ public class UrlController {
     //3. Get originalUrl from entity
     //4. Return originalUrl
     //3XX codes mean redirection. The content moved somewhere else, and the server’s sending you to the new location. These can be temporary or permanent.
-    @GetMapping("/{shorteCode}")
-    public ResponseEntity<Void> getOriginalUrlFromShortenUrl(@PathVariable String shorteCode){ //void bcoz we are not returning anything(string/JSON)
-         String originalUrl =  urlService.getOriginalUrlFromShortenUrl(shorteCode);
+    @GetMapping("/{shortCode}")
+    public ResponseEntity<Void> getOriginalUrlFromShortenUrl(@PathVariable String shortCode){ //void bcoz we are not returning anything(string/JSON)
+         String originalUrl =  urlService.getOriginalUrlFromShortenUrl(shortCode);
          return ResponseEntity.status(302).header("Location",originalUrl).build(); //302-Found.build() instead of body() bcoz we are not returning anything
     }
 

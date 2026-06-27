@@ -1,7 +1,10 @@
 package com.systemdesign.URLShortener;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UrlRequestDTO {
 
+    @NotBlank(message="URL cannot be empty")
     private String url;
 
     public UrlRequestDTO(String url) {
