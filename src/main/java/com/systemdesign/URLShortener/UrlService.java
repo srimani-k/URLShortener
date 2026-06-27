@@ -22,7 +22,7 @@ public class UrlService {
             throw new InvalidUrlException("URL cannot be empty");
         }
 
-        //before generating shortcode, prevent duplicates !!!!
+        //before generating shortcode, prevent duplicate original URLS*** !!!!
         Optional<UrlMappingEntity> existingUrl = urlRepository.findByOriginalUrl(inputurl);
         if(existingUrl.isPresent()){
             UrlResponseDTO response = new UrlResponseDTO();
@@ -30,14 +30,21 @@ public class UrlService {
             return response;
         }
 
-        String generateShortCode = UUID.randomUUID().toString().substring(0,6);
+        String generateShortCode = generateShortCodeWithUUID(inputurl);//88uyg
+        //before saving, check if generated shortcode is already present in db or not (shortcode duplicate check)
+        while(urlRepository.findByShortCode(generateShortCode).isPresent()){
+             generateShortCode = generateShortCodeWithUUID(inputurl);
+        }
         UrlMappingEntity urlbody = new UrlMappingEntity();
         urlbody.setShortCode(generateShortCode);
         urlbody.setOriginalUrl(inputurl);
-         urlRepository.save(urlbody);
-         UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
-         urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
-         return urlResponseDTO;
+        urlRepository.save(urlbody);
+        UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
+        urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
+        return urlResponseDTO;
+    }
+    private String generateShortCodeWithUUID(String url){
+        return UUID.randomUUID().toString().substring(0,6);
     }
     public String getOriginalUrlFromShortenUrl(String shortCode){
          UrlMappingEntity url= urlRepository.findByShortCode(shortCode).orElseThrow(()-> new ShortUrlNotFoundException("Short URL not found"));

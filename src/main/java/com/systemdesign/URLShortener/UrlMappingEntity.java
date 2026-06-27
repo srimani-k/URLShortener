@@ -1,9 +1,6 @@
 package com.systemdesign.URLShortener;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class UrlMappingEntity {
@@ -12,6 +9,8 @@ public class UrlMappingEntity {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     private String originalUrl;
+
+    @Column(unique=true)
     private String shortCode;
     private Long clickCount=0L;
 
