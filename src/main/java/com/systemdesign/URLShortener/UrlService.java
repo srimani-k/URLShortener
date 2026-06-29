@@ -1,6 +1,7 @@
 package com.systemdesign.URLShortener;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,8 +13,10 @@ import java.util.UUID;
 public class UrlService {
 
     private final UrlRepository urlRepository;
-    public UrlService(UrlRepository urlRepository){
+    private final RedisTemplate<String,String> redisTemplate;
+    public UrlService(UrlRepository urlRepository, RedisTemplate redisTemplate){
         this.urlRepository=urlRepository;
+        this.redisTemplate=redisTemplate;
     }
 
     //1. Receive URL
@@ -56,12 +59,22 @@ public class UrlService {
         return UUID.randomUUID().toString().substring(0,6);
     }
     public String getOriginalUrlFromShortenUrl(String shortCode){
+        //Introducing CACHE
+        String originalCashedUrl = redisTemplate.opsForValue().get(shortCode);
+        //redis has shortcode --> originalurl
+        //            key           value
+        if(originalCashedUrl != null){ //if found, return it. Otherwise, continue with MySQL
+            log.info("Cache HIT for shortcode: {}",shortCode);
+            return originalCashedUrl;
+        }
+        //not found, SO continue with MySQL
+        log.info("Cache MISS for shortcode: {}",shortCode);
          UrlMappingEntity url= urlRepository.findByShortCode(shortCode).orElseThrow(()-> {
              log.warn("ShortURL not found: {}",shortCode);
              return new ShortUrlNotFoundException("Short URL not found");
          });
         log.info("Redirect request received for short code: {}", shortCode);
-         //check expiration
+        //check expiration
         LocalDateTime timeNow = LocalDateTime.now();
         if(timeNow.isAfter(url.getExpiresAt())){
             log.warn("Expired URL accessed short code: {}",shortCode);
@@ -78,7 +91,9 @@ public class UrlService {
         );//         UrlResponseDTO response =  new UrlResponseDTO();
 ////         response.setShortenUrl(url.getShortCode());
 //         response.setOriginalUrl(url.getOriginalUrl());
-         return url.getOriginalUrl();
+        redisTemplate.opsForValue().set(shortCode,url.getOriginalUrl());
+        log.info("Stored shortcode: {} in Redis Cache",shortCode);
+        return url.getOriginalUrl();
 
     }
 
