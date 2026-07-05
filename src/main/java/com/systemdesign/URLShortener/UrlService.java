@@ -1,9 +1,11 @@
 package com.systemdesign.URLShortener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,9 +16,11 @@ public class UrlService {
 
     private final UrlRepository urlRepository;
     private final RedisTemplate<String,String> redisTemplate;
-    public UrlService(UrlRepository urlRepository, RedisTemplate redisTemplate){
+    private final ObjectMapper objectMapper;
+    public UrlService(UrlRepository urlRepository, RedisTemplate<String,String> redisTemplate, ObjectMapper objectMapper){
         this.urlRepository=urlRepository;
         this.redisTemplate=redisTemplate;
+        this.objectMapper=objectMapper;
     }
 
     //1. Receive URL
@@ -58,43 +62,95 @@ public class UrlService {
     private String generateShortCodeWithUUID(){
         return UUID.randomUUID().toString().substring(0,6);
     }
-    public String getOriginalUrlFromShortenUrl(String shortCode){
-        //Introducing CACHE
-        String originalCashedUrl = redisTemplate.opsForValue().get(shortCode);
-        //redis has shortcode --> originalurl
-        //            key           value
-        if(originalCashedUrl != null){ //if found, return it. Otherwise, continue with MySQL
-            log.info("Cache HIT for shortcode: {}",shortCode);
-            return originalCashedUrl;
-        }
-        //not found, SO continue with MySQL
-        log.info("Cache MISS for shortcode: {}",shortCode);
-         UrlMappingEntity url= urlRepository.findByShortCode(shortCode).orElseThrow(()-> {
-             log.warn("ShortURL not found: {}",shortCode);
-             return new ShortUrlNotFoundException("Short URL not found");
-         });
-        log.info("Redirect request received for short code: {}", shortCode);
-        //check expiration
-        LocalDateTime timeNow = LocalDateTime.now();
-        if(timeNow.isAfter(url.getExpiresAt())){
-            log.warn("Expired URL accessed short code: {}",shortCode);
-            throw new UrlExpiredException("URL has expired !!");
-        }
-        log.info("Redirecting to original URL.");
-        //set clickcount
-         url.setClickCount(url.getClickCount()+1);
-         urlRepository.save(url);
-        log.info(
-                "Click count incremented to {} for short code {}",
-                url.getClickCount(),
-                shortCode
-        );//         UrlResponseDTO response =  new UrlResponseDTO();
-////         response.setShortenUrl(url.getShortCode());
-//         response.setOriginalUrl(url.getOriginalUrl());
-        redisTemplate.opsForValue().set(shortCode,url.getOriginalUrl());
-        log.info("Stored shortcode: {} in Redis Cache",shortCode);
-        return url.getOriginalUrl();
+    private void incrementClickCount(UrlMappingEntity urlbody){
+        urlbody.setClickCount(urlbody.getClickCount()+1);
+        urlRepository.save(urlbody);
+    }
+    public String getOriginalUrlFromShortenUrl(String shortCode) {
 
+        LocalDateTime timeNow = LocalDateTime.now();
+
+        // ---------- CACHE HIT ----------
+        String json = redisTemplate.opsForValue().get(shortCode);
+
+        if (json != null) {
+            log.info("Cache HIT for shortcode: {}", shortCode);
+
+            try {
+                CachedUrl cachedUrl = objectMapper.readValue(json, CachedUrl.class);
+
+                // Business validation
+                if (timeNow.isAfter(cachedUrl.getExpiresAt())) {
+                    throw new UrlExpiredException("URL has expired!!");
+                }
+
+                // Update click count in MySQL
+                UrlMappingEntity urlBody = urlRepository.findByShortCode(shortCode)
+                        .orElseThrow(() ->
+                                new ShortUrlNotFoundException("Short URL not found!!"));
+
+                incrementClickCount(urlBody);
+
+                log.info("Click count incremented to {} for short code {}",
+                        urlBody.getClickCount(),
+                        shortCode);
+
+                return cachedUrl.getOriginalUrl();
+
+            } catch (Exception e) {
+                log.warn("Failed to read cached JSON for shortcode {}. Falling back to MySQL.",
+                        shortCode, e);
+            }
+        }
+
+        // ---------- CACHE MISS ----------
+        log.info("Cache MISS for shortcode: {}", shortCode);
+
+        UrlMappingEntity url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> {
+                    log.warn("ShortURL not found: {}", shortCode);
+                    return new ShortUrlNotFoundException("Short URL not found");
+                });
+
+        log.info("Redirect request received for short code: {}", shortCode);
+
+        if (timeNow.isAfter(url.getExpiresAt())) {
+            log.warn("Expired URL accessed for short code: {}", shortCode);
+            throw new UrlExpiredException("URL has expired!!");
+        }
+
+        log.info("Preparing redirect to original URL.");
+
+        incrementClickCount(url);
+
+        log.info("Click count incremented to {} for short code {}",
+                url.getClickCount(),
+                shortCode);
+
+        // Store in Redis
+        try {
+            CachedUrl cachedUrl = new CachedUrl(
+                    url.getOriginalUrl(),
+                    url.getExpiresAt());
+
+            String cachedJson = objectMapper.writeValueAsString(cachedUrl);
+
+            Duration remainingTime =
+                    Duration.between(timeNow, url.getExpiresAt());
+
+            System.out.println(redisTemplate.getValueSerializer().getClass().getName());
+            redisTemplate.opsForValue().set(
+                    shortCode,
+                    cachedJson,
+                    remainingTime);
+
+            log.info("Stored shortcode: {} in Redis Cache", shortCode);
+
+        } catch (Exception e) {
+            log.warn("Failed to store shortcode {} in Redis.", shortCode, e);
+        }
+
+        return url.getOriginalUrl();
     }
 
     public UrlStatsResponseDTO getUrlStats(String shortCode){
