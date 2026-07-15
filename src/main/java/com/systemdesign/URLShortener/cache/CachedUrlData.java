@@ -1,4 +1,4 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.cache;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CachedUrl {
+public class CachedUrlData {
     private String originalUrl;
     private LocalDateTime expiresAt;
 }

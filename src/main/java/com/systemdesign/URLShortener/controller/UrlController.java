@@ -1,5 +1,9 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.controller;
 
+import com.systemdesign.URLShortener.dto.UrlRequestDTO;
+import com.systemdesign.URLShortener.dto.UrlResponseDTO;
+import com.systemdesign.URLShortener.service.UrlService;
+import com.systemdesign.URLShortener.dto.UrlStatsResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

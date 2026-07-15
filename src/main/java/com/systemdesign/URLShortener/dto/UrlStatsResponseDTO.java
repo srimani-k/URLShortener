@@ -1,4 +1,4 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.dto;
 
 public class UrlStatsResponseDTO {
     private String originalUrl;

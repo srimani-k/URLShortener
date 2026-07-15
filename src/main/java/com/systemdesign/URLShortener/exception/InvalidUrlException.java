@@ -1,4 +1,4 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.exception;
 
 public class InvalidUrlException extends RuntimeException{
 

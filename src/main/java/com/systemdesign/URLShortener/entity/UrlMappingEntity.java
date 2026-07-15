@@ -1,4 +1,4 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

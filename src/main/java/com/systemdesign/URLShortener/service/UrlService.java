@@ -1,6 +1,13 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.systemdesign.URLShortener.cache.CachedUrlData;
+import com.systemdesign.URLShortener.dto.UrlResponseDTO;
+import com.systemdesign.URLShortener.dto.UrlStatsResponseDTO;
+import com.systemdesign.URLShortener.entity.UrlMappingEntity;
+import com.systemdesign.URLShortener.exception.ShortUrlNotFoundException;
+import com.systemdesign.URLShortener.exception.UrlExpiredException;
+import com.systemdesign.URLShortener.repository.UrlRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -77,7 +84,7 @@ public class UrlService {
             log.info("Cache HIT for shortcode: {}", shortCode);
 
             try {
-                CachedUrl cachedUrl = objectMapper.readValue(json, CachedUrl.class);
+                CachedUrlData cachedUrl = objectMapper.readValue(json, CachedUrlData.class);
 
                 // Business validation
                 if (timeNow.isAfter(cachedUrl.getExpiresAt())) {
@@ -129,7 +136,7 @@ public class UrlService {
 
         // Store in Redis
         try {
-            CachedUrl cachedUrl = new CachedUrl(
+            CachedUrlData cachedUrl = new CachedUrlData(
                     url.getOriginalUrl(),
                     url.getExpiresAt());
 

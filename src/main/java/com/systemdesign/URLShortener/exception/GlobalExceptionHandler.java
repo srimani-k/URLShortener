@@ -1,5 +1,6 @@
-package com.systemdesign.URLShortener;
+package com.systemdesign.URLShortener.exception;
 
+import com.systemdesign.URLShortener.dto.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
