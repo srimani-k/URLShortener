@@ -1,0 +1,50 @@
+
+services:
+  app:
+    build: .
+    image: urlshortener:1.0
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/urlShortener
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in your .env file}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in your .env file}
+      DDL_AUTO: update
+      SHOW_SQL: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: urlShortener
+      MYSQL_USER: ${DB_USERNAME:?Set DB_USERNAME in your .env file}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in your .env file}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in your .env file}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
