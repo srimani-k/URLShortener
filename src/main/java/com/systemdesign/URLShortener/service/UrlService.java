@@ -11,7 +11,7 @@ import com.systemdesign.URLShortener.repository.UrlRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
+import org.springframework.beans.factory.annotation.Value;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -30,6 +30,8 @@ public class UrlService {
         this.objectMapper=objectMapper;
     }
 
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
     //1. Receive URL
     //2. Generate short code
     //3. Save in DB
@@ -41,7 +43,7 @@ public class UrlService {
         if(existingUrl.isPresent()){
             log.info("URL already exists. Returning existing URL.");
             UrlResponseDTO response = new UrlResponseDTO();
-            response.setShortenUrl("http://localhost:8080/" + existingUrl.get().getShortCode());
+            response.setShortenUrl(baseUrl + "/" + existingUrl.get().getShortCode());
             return response;
         }
 
@@ -63,7 +65,7 @@ public class UrlService {
         urlRepository.save(urlbody);
         log.info("Short URL saved successfully with ID: {}", urlbody.getId());
         UrlResponseDTO urlResponseDTO = new UrlResponseDTO();
-        urlResponseDTO.setShortenUrl("http://localhost:8080/"+urlbody.getShortCode());
+        urlResponseDTO.setShortenUrl(baseUrl + "/" + urlbody.getShortCode());
         return urlResponseDTO;
     }
     private String generateShortCodeWithUUID(){
@@ -166,7 +168,7 @@ public class UrlService {
 
         UrlStatsResponseDTO response = new UrlStatsResponseDTO();
         response.setOriginalUrl(urlbody.getOriginalUrl());
-        response.setShortUrl("http://localhost:8080/"+urlbody.getShortCode());
+        response.setShortUrl(baseUrl + "/" + urlbody.getShortCode());
         response.setClickCount(urlbody.getClickCount());
         log.info("Statistics returned successfully.");
         return response;
